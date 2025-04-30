@@ -15,6 +15,9 @@ use tokio::{
     time,
 };
 
+const CLIPBOARD_MESSAGE_TYPE: &[u8; 4] = &[0, 0, 0, 1];
+const PREFIX_LENGTH: usize = 8;
+
 #[derive(Debug, Error)]
 enum AppError {
     #[error("IO Error: {0}")]
@@ -135,12 +138,12 @@ impl Server {
         *last_text_guard = current_text.clone();
 
         let text_bytes = current_text.as_bytes();
-        let message_length = 8 + text_bytes.len();
+        let message_length = PREFIX_LENGTH + text_bytes.len();
         let mut message_data = BytesMut::with_capacity(message_length);
 
         // big-endian
         message_data.put_i32(message_length as i32);
-        message_data.put_slice(&[0u8, 0, 0, 1]);
+        message_data.put_slice(CLIPBOARD_MESSAGE_TYPE);
         message_data.put_slice(text_bytes);
 
         // Freeze into immutable Bytes for sending
@@ -236,7 +239,7 @@ async fn handle_connection(
 
                 server.broadcast(addr, received_data.clone()).await;
 
-                let received_without_prefix = Bytes::copy_from_slice(&buf[8..n]);
+                let received_without_prefix = Bytes::copy_from_slice(&buf[PREFIX_LENGTH..n]);
                 // spawn a separate task for clipboard to avoid blokcing broadcast/read loop
                 tokio::spawn(async move {
                     if let Err(e) = write_to_clipboard(received_without_prefix).await {
@@ -259,6 +262,7 @@ async fn handle_connection(
 }
 
 #[tokio::main]
+#[allow(unreachable_code)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
@@ -268,8 +272,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tokio::spawn(clipboard_check_task(server_for_checker));
 
     if let Some(server_ip) = args.server {
-        // TODO: Client mode (需要实现客户端逻辑)
-        println!("Connecting to server: {}", server_ip);
+        // Client mode
+        loop {
+            println!("Connecting to server: {}", server_ip);
+            match TcpStream::connect(format!("{}:{}", server_ip, args.port)).await {
+                Ok(stream) => {
+                    let server_peer_addr = stream.peer_addr()?;
+                    let result =
+                        handle_connection(stream, server_peer_addr, Arc::clone(&server)).await;
+                    eprintln!(
+                        "Disconnected from server: {:?}. Retrying in 5s...",
+                        result.err()
+                    );
+                }
+                Err(e) => {
+                    eprintln!("Connection failed: {}. Retrying in 5s...", e);
+                }
+            }
+            // wait before retrying
+            time::sleep(Duration::from_secs(5)).await;
+        }
     } else {
         // Server mode
         let addr = SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), args.port);
