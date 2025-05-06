@@ -1,7 +1,9 @@
 [package]
 name = "share-clipboard-rs"
+description = "A lightweight, cross-platform utility written in Rust to seamlessly share your clipboard content across multiple devices on your local network."
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
 
 [dependencies]
 anyhow = "1.0.98"
