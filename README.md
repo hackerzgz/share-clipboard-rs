@@ -1,8 +1,8 @@
 # share-clipboard-rs
 
-[![Crates.io](https://img.shields.io/crates/v/share-clipboard-rs.svg)](https://crates.io/crates/share-clipboard-rs) <!-- Optional: Add if published -->
-[![Build Status](https://github.com/YOUR_USERNAME/share-clipboard-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/YOUR_USERNAME/share-clipboard-rs/actions) <!-- Optional: Replace with your CI link -->
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) <!-- Optional: Choose your license -->
+[![Crates.io](https://img.shields.io/crates/v/share-clipboard-rs.svg)](https://crates.io/crates/share-clipboard-rs)
+[![Build Status](https://github.com/hackerzgz/share-clipboard-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/hackerzgz/share-clipboard-rs/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A lightweight, cross-platform utility written in Rust to seamlessly share your clipboard content across multiple devices on your local network.
 
