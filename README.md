@@ -18,11 +18,11 @@ This version was created to leverage the benefits of Rust, including:
 
 *   **Performance:** Efficient execution and low resource usage.
 *   **Memory Safety:** Reduced risk of crashes and vulnerabilities.
-*   **Cross-Platform:** Easier compilation for Windows, macOS, and Linux from a single codebase.
+*   **Cross-Platform:** Easier compilation for Windows(untested), macOS, and Linux from a single codebase.
 
 ## Features
 
-*   **Cross-Platform:** Runs on Windows, macOS, and Linux.
+*   **Cross-Platform:** Runs on Windows(untested), macOS, and Linux.
 *   **Lightweight:** Minimal impact on system resources.
 *   **Protocol Compatible:** Interoperates with the original `share-clipboard` ecosystem.
 *   **Simple Usage:** Designed to be easy to set up and run.
@@ -31,7 +31,7 @@ This version was created to leverage the benefits of Rust, including:
 
 ### Option 1: Pre-compiled Binaries (Recommended)
 
-Download the latest pre-compiled binary for your operating system from the [**Releases**](https://github.com/YOUR_USERNAME/share-clipboard-rs/releases) page.
+Download the latest pre-compiled binary for your operating system from the [**Releases**](https://github.com/hackerzgz/share-clipboard-rs/releases) page.
 
 ### Option 2: Using Cargo
 
@@ -47,7 +47,7 @@ Or, you can build from source:
 
 ```bash
 
-git clone https://github.com/YOUR_USERNAME/share-clipboard-rs.git
+git clone https://github.com/hackerzgz/share-clipboard-rs.git
 cd share-clipboard-rs
 ```
 

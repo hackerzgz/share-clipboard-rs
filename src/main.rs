@@ -226,30 +226,43 @@ async fn handle_connection(
 
     // --- READ TASK (within the main handle_connection body) ---
     // This part reads data *from* the client socket.
-    let mut buf = vec![0; 1024];
+    let mut header_buf = vec![0; PREFIX_LENGTH];
     loop {
-        match reader.read(&mut buf).await {
-            Ok(0) => {
-                println!("connection closed by {}", addr);
-                break; // EOF
-            }
-            Ok(n) => {
-                let received_data = Bytes::copy_from_slice(&buf[..n]);
-                println!("Received {} bytes from {}", n, addr);
+        match reader.read(&mut header_buf).await {
+            Ok(_) => {
+                let msg_len = i32::from_be_bytes(header_buf[..4].try_into().unwrap());
+                println!("got copied data length: {}", msg_len);
 
-                server.broadcast(addr, received_data.clone()).await;
+                let mut body_buf = vec![0; msg_len as usize - PREFIX_LENGTH];
+                match reader.read(&mut body_buf).await {
+                    Ok(n) => {
+                        if n == 0 {
+                            println!("connection closed by {}", addr);
+                            break; // EOF
+                        }
 
-                let received_without_prefix = Bytes::copy_from_slice(&buf[PREFIX_LENGTH..n]);
-                // spawn a separate task for clipboard to avoid blokcing broadcast/read loop
-                tokio::spawn(async move {
-                    if let Err(e) = write_to_clipboard(received_without_prefix).await {
-                        eprintln!("Error writing to clipboard from {}: {}", addr, e);
+                        let mut received_data = BytesMut::with_capacity(msg_len as usize);
+                        received_data.extend_from_slice(&header_buf);
+                        received_data.extend_from_slice(&body_buf);
+                        println!("Received {} bytes from {}", n, addr);
+                        server.broadcast(addr, received_data.freeze()).await;
+
+                        let received_without_prefix = Bytes::copy_from_slice(&body_buf[..]);
+                        // spawn a separate task for clipboard to avoid blokcing broadcast/read loop
+                        tokio::spawn(async move {
+                            if let Err(e) = write_to_clipboard(received_without_prefix).await {
+                                eprintln!("Error writing to clipboard from {}: {}", addr, e);
+                            }
+                        });
                     }
-                });
+                    Err(e) => {
+                        eprintln!("Error reading from {}: {}", addr, e);
+                        break;
+                    }
+                }
             }
             Err(e) => {
-                eprintln!("Error reading from {}: {}", addr, e);
-                break;
+                eprintln!("Unsupported protocol not start with i32: {}", e);
             }
         }
     }
